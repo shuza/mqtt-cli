@@ -21,6 +21,7 @@ import (
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"time"
 )
 
 var cfgFile string
@@ -29,12 +30,7 @@ var cfgFile string
 var rootCmd = &cobra.Command{
 	Use:   "mqtt-sh",
 	Short: "Command line communication with MQTT broker",
-	Long: `MQTT-sh is a CLI application to subscribe and publish messages to MQTT broker.
-First you have to initialize mqtt-sh application with broker credentials like IP, clientID etc.
-Then you can subscribe or publish messages to any topic.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Hi mqtt-sh")
-	},
+	Long:  `MQTT-sh is a CLI application to subscribe and publish messages to MQTT broker. First you have to initialize mqtt-sh application with broker credentials like IP, clientID etc. Then you can subscribe or publish messages to any topic.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	//	Run: func(cmd *cobra.Command, args []string) { },
@@ -57,9 +53,11 @@ func init() {
 	// will be global for your application.
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.mqtt-sh.yaml)")
 
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.PersistentFlags().StringP("address", "a", "", "Set MQTT broker host with port example 192.168.0.1:1883")
+	rootCmd.PersistentFlags().StringP("clientId", "i",
+		fmt.Sprintf("mqtt-sh-%v", time.Now().Nanosecond()),
+		"Set your clientID")
+	rootCmd.PersistentFlags().StringP("topic", "t", "/*", "Set the topic at which you want to subscribe and publish messages")
 
 }
 
