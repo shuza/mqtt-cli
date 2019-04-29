@@ -58,6 +58,7 @@ func init() {
 		fmt.Sprintf("mqtt-sh-%v", time.Now().Nanosecond()),
 		"Set your clientID")
 	rootCmd.PersistentFlags().StringP("topic", "t", "/*", "Set the topic at which you want to subscribe and publish messages")
+	rootCmd.PersistentFlags().IntP("qos", "q", 1, "Set your quality of service ")
 
 }
 
