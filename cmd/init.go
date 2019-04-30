@@ -15,7 +15,10 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/spf13/cobra"
+	"mqtt-sh/db"
+	"time"
 )
 
 // initCmd represents the init command
@@ -29,7 +32,22 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		db.Client = &db.CacheClient{}
+		db.Client.Init()
+		defer db.Client.Close()
 
+		value, err := cmd.Flags().GetString("address")
+		if err == nil && value != "" {
+			db.Client.Set(db.Address, value)
+		}
+
+		value, err = cmd.Flags().GetString("clientId")
+		if err != nil || value == "" {
+			value = fmt.Sprintf("mqtt-sh_%v", time.Millisecond)
+		}
+		db.Client.Set(db.ClientId, value)
+
+		display()
 	},
 }
 
@@ -45,4 +63,11 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// initCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func display() {
+	value := db.Client.Get(db.Address)
+	fmt.Println("Your host address :  ", value)
+	value = db.Client.Get(db.ClientId)
+	fmt.Println("You client ID :  ", value)
 }

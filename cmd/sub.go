@@ -16,6 +16,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+	"mqtt-sh/db"
 )
 
 // subCmd represents the sub command
@@ -29,7 +30,12 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		connSession.display()
+		db.Client = &db.CacheClient{}
+		db.Client.Init()
+		defer db.Client.Close()
+
+		display()
+
 	},
 }
 
