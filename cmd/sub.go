@@ -15,8 +15,15 @@
 package cmd
 
 import (
+	"fmt"
+	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/spf13/cobra"
 	"mqtt-sh/db"
+	"os"
+	"os/signal"
+	"strconv"
+	"syscall"
+	"time"
 )
 
 // subCmd represents the sub command
@@ -34,8 +41,27 @@ to quickly create a Cobra application.`,
 		db.Client.Init()
 		defer db.Client.Close()
 
-		display()
+		address, _ := cmd.Flags().GetString("address")
+		if address == "" {
+			address = db.Client.Get(db.Address)
+		}
 
+		clientId, _ := cmd.Flags().GetString("clientId")
+		if clientId == "" {
+			clientId = db.Client.Get(db.ClientId)
+		}
+
+		topic, _ := cmd.Flags().GetString("topic")
+		if topic == "" {
+			topic = db.Client.Get(db.Topic)
+		}
+
+		qos, _ := cmd.Flags().GetInt("qos")
+		if qos < 0 {
+			qos, _ = strconv.Atoi(db.Client.Get(db.Qos))
+		}
+
+		subscribe(address, clientId, topic, qos)
 	},
 }
 
@@ -51,4 +77,32 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// subCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func subscribe(address string, clientId string, topic string, qos int) {
+	client := createClient(address, clientId)
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	client.Subscribe(topic, byte(qos), func(client mqtt.Client, message mqtt.Message) {
+		fmt.Printf("=====	Received	=====\nTopic  ::  %v\nMessage  ::  %v", message.Topic(), string(message.Payload()))
+	})
+
+	<-sigs
+}
+
+func createClient(address string, clientId string) mqtt.Client {
+	ops := mqtt.NewClientOptions()
+	ops.AddBroker(fmt.Sprintf("tcp://%s", address))
+	ops.SetClientID(clientId)
+
+	client := mqtt.NewClient(ops)
+	token := client.Connect()
+	for !token.WaitTimeout(3 * time.Second) {
+	}
+	if err := token.Error(); err != nil {
+		panic(err)
+	}
+
+	return client
 }

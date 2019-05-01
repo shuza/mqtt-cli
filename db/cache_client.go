@@ -1,7 +1,6 @@
 package db
 
 import (
-	"fmt"
 	"github.com/boltdb/bolt"
 	"os"
 	"strings"
@@ -61,7 +60,6 @@ func getDbPath() string {
 	cacheDir, _ := os.UserCacheDir()
 	parts := strings.Split(cacheDir, ".")
 	path := parts[0] + "Downloads/.mqtt-sh"
-	fmt.Println("path  ==/   ", path)
 	os.MkdirAll(path, 0777)
 	return path
 }
