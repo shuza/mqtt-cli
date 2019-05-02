@@ -22,7 +22,7 @@ type CacheClient struct {
 
 func (c *CacheClient) Init() {
 	path := getDbPath()
-	db, err := bolt.Open(path+"/mqtt-sh.db", 0777, &bolt.Options{Timeout: 1 * time.Second})
+	db, err := bolt.Open(path+"/mqtt-sh.db", 0777, &bolt.Options{Timeout: 3 * time.Second})
 	if err != nil {
 		panic(err)
 	}
@@ -59,7 +59,7 @@ func (c *CacheClient) Close() {
 func getDbPath() string {
 	cacheDir, _ := os.UserCacheDir()
 	parts := strings.Split(cacheDir, ".")
-	path := parts[0] + "Downloads/.mqtt-sh"
+	path := parts[0] + "Downloads/.mqtt-sh/tmp/"
 	os.MkdirAll(path, 0777)
 	return path
 }

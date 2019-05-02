@@ -16,19 +16,14 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/spf13/cobra"
 	"mqtt-sh/db"
-	"os"
-	"os/signal"
 	"strconv"
-	"syscall"
-	"time"
 )
 
-// subCmd represents the sub command
-var subCmd = &cobra.Command{
-	Use:   "sub",
+// pubCmd represents the pub command
+var pubCmd = &cobra.Command{
+	Use:   "pub",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -61,50 +56,35 @@ to quickly create a Cobra application.`,
 			qos, _ = strconv.Atoi(db.Client.Get(db.Qos))
 		}
 
-		//db.Client.Close()
+		db.Client.Close()
 
-		subscribe(address, clientId, topic, qos)
+		message, _ := cmd.Flags().GetString("message")
+
+		publish(address, clientId, topic, qos, message)
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(subCmd)
+	rootCmd.AddCommand(pubCmd)
+	pubCmd.Flags().StringP("message", "m", "", "Put your message here")
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// subCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// pubCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// subCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// pubCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func subscribe(address string, clientId string, topic string, qos int) {
+func publish(address string, clientId string, topic string, qos int, message string) {
 	client := createClient(address, clientId)
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-
-	client.Subscribe(topic, byte(qos), func(client mqtt.Client, message mqtt.Message) {
-		fmt.Printf("=====	Received	=====\nTopic  ::  %v\nMessage  ::  %v\n", message.Topic(), string(message.Payload()))
-	})
-	fmt.Println("Subscribed....")
-	<-sigs
-}
-
-func createClient(address string, clientId string) mqtt.Client {
-	ops := mqtt.NewClientOptions()
-	ops.AddBroker(fmt.Sprintf("tcp://%s", address))
-	ops.SetClientID(clientId)
-
-	client := mqtt.NewClient(ops)
-	token := client.Connect()
-	for !token.WaitTimeout(3 * time.Second) {
-	}
+	token := client.Publish(topic, byte(qos), true, message)
 	if err := token.Error(); err != nil {
-		panic(err)
+		fmt.Println("Error  :  ", err)
+	} else {
+		fmt.Println("published successfully")
 	}
-
-	return client
 }
