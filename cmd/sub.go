@@ -61,7 +61,7 @@ to quickly create a Cobra application.`,
 			qos, _ = strconv.Atoi(db.Client.Get(db.Qos))
 		}
 
-		//db.Client.Close()
+		db.Client.Close()
 
 		subscribe(address, clientId, topic, qos)
 	},
@@ -87,8 +87,12 @@ func subscribe(address string, clientId string, topic string, qos int) {
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
 	client.Subscribe(topic, byte(qos), func(client mqtt.Client, message mqtt.Message) {
-		fmt.Printf("=====	Received	=====\nTopic  ::  %v\nMessage  ::  %v\n", message.Topic(), string(message.Payload()))
+		fmt.Printf("=======		Received	=======\nTopic  ::  %v\nMessage  ::  %v\n", message.Topic(), string(message.Payload()))
 	})
+	fmt.Println("Broker Address :  ", address)
+	fmt.Println("Client ID :  ", clientId)
+	fmt.Println("Topic :  ", topic)
+	fmt.Println("QOS :  ", qos)
 	fmt.Println("Subscribed....")
 	<-sigs
 }

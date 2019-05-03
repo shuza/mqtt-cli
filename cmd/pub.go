@@ -85,6 +85,9 @@ func publish(address string, clientId string, topic string, qos int, message str
 	if err := token.Error(); err != nil {
 		fmt.Println("Error  :  ", err)
 	} else {
+		fmt.Println("Topic :  ", topic)
+		fmt.Println("QOS :  ", qos)
+		fmt.Println("Message :  ", message)
 		fmt.Println("published successfully")
 	}
 }
