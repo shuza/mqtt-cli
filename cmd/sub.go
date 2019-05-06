@@ -15,10 +15,12 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/spf13/cobra"
-	"mqtt-sh/db"
+	"mqtt-sh/key"
+	"mqtt-sh/utils"
 	"os"
 	"os/signal"
 	"strconv"
@@ -37,33 +39,41 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		db.Client = &db.CacheClient{}
-		db.Client.Init()
-		defer db.Client.Close()
+		host, _ := cmd.Flags().GetString("address")
+		if host == "" {
+			host = os.Getenv(key.Host)
+		}
 
-		address, _ := cmd.Flags().GetString("address")
-		if address == "" {
-			address = db.Client.Get(db.Address)
+		port, _ := cmd.Flags().GetInt("port")
+		if port == 0 {
+			value := os.Getenv(key.Port)
+			if a, err := strconv.Atoi(value); err != nil {
+				panic(errors.New("Port number is missing. use -p or MQTT_PORT environment veriable"))
+			} else {
+				port = a
+			}
 		}
 
 		clientId, _ := cmd.Flags().GetString("clientId")
 		if clientId == "" {
-			clientId = db.Client.Get(db.ClientId)
+			clientId = os.Getenv(key.ClientId)
+			if clientId == "" {
+				clientId = utils.NewClientId()
+				os.Setenv(key.ClientId, clientId)
+			}
 		}
 
 		topic, _ := cmd.Flags().GetString("topic")
 		if topic == "" {
-			topic = db.Client.Get(db.Topic)
+			topic = os.Getenv(key.Topic)
 		}
 
 		qos, _ := cmd.Flags().GetInt("qos")
 		if qos < 0 {
-			qos, _ = strconv.Atoi(db.Client.Get(db.Qos))
+			qos, _ = strconv.Atoi(os.Getenv(key.Qos))
 		}
 
-		db.Client.Close()
-
-		subscribe(address, clientId, topic, qos)
+		subscribe(host, port, clientId, topic, qos)
 	},
 }
 
@@ -81,8 +91,8 @@ func init() {
 	// subCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func subscribe(address string, clientId string, topic string, qos int) {
-	client := createClient(address, clientId)
+func subscribe(address string, port int, clientId string, topic string, qos int) {
+	client := createClient(address, port, clientId)
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
@@ -97,9 +107,9 @@ func subscribe(address string, clientId string, topic string, qos int) {
 	<-sigs
 }
 
-func createClient(address string, clientId string) mqtt.Client {
+func createClient(address string, port int, clientId string) mqtt.Client {
 	ops := mqtt.NewClientOptions()
-	ops.AddBroker(fmt.Sprintf("tcp://%s", address))
+	ops.AddBroker(fmt.Sprintf("tcp://%s:%d", address, port))
 	ops.SetClientID(clientId)
 
 	client := mqtt.NewClient(ops)

@@ -15,9 +15,12 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"github.com/spf13/cobra"
-	"mqtt-sh/db"
+	"mqtt-sh/key"
+	"mqtt-sh/utils"
+	"os"
 	"strconv"
 )
 
@@ -32,35 +35,45 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		db.Client = &db.CacheClient{}
-		db.Client.Init()
-		defer db.Client.Close()
+		host, err := cmd.Flags().GetString("address")
+		if err != nil {
+			host = os.Getenv(key.Host)
+		}
 
-		address, _ := cmd.Flags().GetString("address")
-		if address == "" {
-			address = db.Client.Get(db.Address)
+		port, err := cmd.Flags().GetInt(key.Port)
+		if err != nil {
+			if a, err := strconv.Atoi(os.Getenv(key.Port)); err != nil {
+				panic(errors.New("Port number is missing. use -p or MQTT_PORT environment veriable"))
+			} else {
+				port = a
+			}
 		}
 
 		clientId, _ := cmd.Flags().GetString("clientId")
 		if clientId == "" {
-			clientId = db.Client.Get(db.ClientId)
+			clientId = os.Getenv(key.ClientId)
+			if clientId == "" {
+				clientId = utils.NewClientId()
+				os.Setenv(key.ClientId, clientId)
+			}
 		}
 
 		topic, _ := cmd.Flags().GetString("topic")
 		if topic == "" {
-			topic = db.Client.Get(db.Topic)
+			topic = os.Getenv(key.Topic)
 		}
 
 		qos, _ := cmd.Flags().GetInt("qos")
 		if qos < 0 {
-			qos, _ = strconv.Atoi(db.Client.Get(db.Qos))
+			qos, _ = strconv.Atoi(os.Getenv(key.Qos))
 		}
 
-		db.Client.Close()
+		message, err := cmd.Flags().GetString("message")
+		if err != nil {
+			panic(errors.New("Required a message. use --message or -m"))
+		}
 
-		message, _ := cmd.Flags().GetString("message")
-
-		publish(address, clientId, topic, qos, message)
+		publish(host, port, clientId, topic, qos, message)
 	},
 }
 
@@ -79,8 +92,8 @@ func init() {
 	// pubCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func publish(address string, clientId string, topic string, qos int, message string) {
-	client := createClient(address, clientId)
+func publish(address string, port int, clientId string, topic string, qos int, message string) {
+	client := createClient(address, port, clientId)
 	token := client.Publish(topic, byte(qos), true, message)
 	if err := token.Error(); err != nil {
 		fmt.Println("Error  :  ", err)

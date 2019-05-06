@@ -53,7 +53,8 @@ func init() {
 	// will be global for your application.
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.mqtt-sh.yaml)")
 
-	rootCmd.PersistentFlags().StringP("address", "a", "", "Set MQTT broker host with port example 192.168.0.1:1883")
+	rootCmd.PersistentFlags().StringP("address", "a", "", "Set MQTT broker host example 192.168.0.1")
+	rootCmd.PersistentFlags().IntP("port", "p", 0, "Set MQTT broker port example 1883")
 	rootCmd.PersistentFlags().StringP("clientId", "i",
 		fmt.Sprintf("mqtt-sh-%v", time.Now().Nanosecond()),
 		"Set your clientID")
