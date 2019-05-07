@@ -35,15 +35,19 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		host, err := cmd.Flags().GetString("address")
-		if err != nil {
+		host, _ := cmd.Flags().GetString("address")
+		if host == "" {
 			host = os.Getenv(key.Host)
+			if host == "" {
+				panic(errors.New("Host address is missing. User -a or MQTT_HOST environment variable"))
+			}
 		}
 
-		port, err := cmd.Flags().GetInt(key.Port)
-		if err != nil {
-			if a, err := strconv.Atoi(os.Getenv(key.Port)); err != nil {
-				panic(errors.New("Port number is missing. use -p or MQTT_PORT environment veriable"))
+		port, _ := cmd.Flags().GetInt("port")
+		if port == 0 {
+			value := os.Getenv(key.Port)
+			if a, err := strconv.Atoi(value); err != nil {
+				panic(errors.New("Port number is missing. use -p or MQTT_PORT environment variable"))
 			} else {
 				port = a
 			}
@@ -61,6 +65,9 @@ to quickly create a Cobra application.`,
 		topic, _ := cmd.Flags().GetString("topic")
 		if topic == "" {
 			topic = os.Getenv(key.Topic)
+			if topic == "" {
+				panic(errors.New("Topic is missing. User -t or MQTT_TOPIC environment variable"))
+			}
 		}
 
 		qos, _ := cmd.Flags().GetInt("qos")
@@ -95,8 +102,9 @@ func init() {
 func publish(address string, port int, clientId string, topic string, qos int, message string) {
 	client := createClient(address, port, clientId)
 	token := client.Publish(topic, byte(qos), true, message)
-	if err := token.Error(); err != nil {
-		fmt.Println("Error  :  ", err)
+	token.Wait()
+	if token.Wait() && token.Error() != nil {
+		fmt.Println("Error  :  ", token.Error())
 	} else {
 		fmt.Println("Topic :  ", topic)
 		fmt.Println("QOS :  ", qos)

@@ -42,13 +42,16 @@ to quickly create a Cobra application.`,
 		host, _ := cmd.Flags().GetString("address")
 		if host == "" {
 			host = os.Getenv(key.Host)
+			if host == "" {
+				panic(errors.New("Host address is missing. User -a or MQTT_HOST environment variable"))
+			}
 		}
 
 		port, _ := cmd.Flags().GetInt("port")
 		if port == 0 {
 			value := os.Getenv(key.Port)
 			if a, err := strconv.Atoi(value); err != nil {
-				panic(errors.New("Port number is missing. use -p or MQTT_PORT environment veriable"))
+				panic(errors.New("Port number is missing. use -p or MQTT_PORT environment variable"))
 			} else {
 				port = a
 			}
@@ -66,6 +69,9 @@ to quickly create a Cobra application.`,
 		topic, _ := cmd.Flags().GetString("topic")
 		if topic == "" {
 			topic = os.Getenv(key.Topic)
+			if topic == "" {
+				panic(errors.New("Topic is missing. User -t or MQTT_TOPIC environment variable"))
+			}
 		}
 
 		qos, _ := cmd.Flags().GetInt("qos")
@@ -97,7 +103,7 @@ func subscribe(address string, port int, clientId string, topic string, qos int)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
 	client.Subscribe(topic, byte(qos), func(client mqtt.Client, message mqtt.Message) {
-		fmt.Printf("=======		Received	=======\nTopic  ::  %v\nMessage  ::  %v\n", message.Topic(), string(message.Payload()))
+		fmt.Printf("Topic  ::  %v\nMessage  ::  %v\n\n", message.Topic(), string(message.Payload()))
 	})
 	fmt.Println("Broker Address :  ", address)
 	fmt.Println("Client ID :  ", clientId)
