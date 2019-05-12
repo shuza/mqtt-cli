@@ -6,6 +6,11 @@ If you have golang ready environment, you can easily install it
 ```
 go get github.com/shuza/mqtt-cli
 ```
+Or you can install using following command
+```
+curl -s -L https://raw.githubusercontent.com/shuza/mqtt-cli/master/install.sh | bash
+```
+```
 
 # Usage
 You can set host, port, clientId, topic and qos on the Environment variables.
