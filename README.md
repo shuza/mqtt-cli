@@ -10,7 +10,6 @@ Or you can install using following command
 ```
 curl -s -L https://raw.githubusercontent.com/shuza/mqtt-cli/master/install.sh | bash
 ```
-```
 
 # Usage
 You can set host, port, clientId, topic and qos on the Environment variables.
