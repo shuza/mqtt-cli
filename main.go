@@ -14,7 +14,7 @@
 
 package main
 
-import "mqtt-sh/cmd"
+import "github.com/shuza/mqtt-cli/cmd"
 
 func main() {
 	cmd.Execute()

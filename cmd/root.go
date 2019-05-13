@@ -28,9 +28,9 @@ var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "mqtt-sh",
+	Use:   "mqtt-cli",
 	Short: "Command line communication with MQTT broker",
-	Long:  `MQTT-sh is a CLI application to subscribe and publish messages to MQTT broker. First you have to initialize mqtt-sh application with broker credentials like IP, clientID etc. Then you can subscribe or publish messages to any topic.`,
+	Long:  `MQTT-cli is a CLI application to subscribe and publish messages to MQTT broker. First you have to initialize mqtt-sh application with broker credentials like IP, clientID etc. Then you can subscribe or publish messages to any topic.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	//	Run: func(cmd *cobra.Command, args []string) { },
@@ -56,7 +56,7 @@ func init() {
 	rootCmd.PersistentFlags().StringP("address", "a", "", "Set MQTT broker host example 192.168.0.1")
 	rootCmd.PersistentFlags().IntP("port", "p", 0, "Set MQTT broker port example 1883")
 	rootCmd.PersistentFlags().StringP("clientId", "i",
-		fmt.Sprintf("mqtt-sh-%v", time.Now().Nanosecond()),
+		fmt.Sprintf("mqtt-cli-%v", time.Now().Nanosecond()),
 		"Set your clientID")
 	rootCmd.PersistentFlags().StringP("topic", "t", "/*", "Set the topic at which you want to subscribe and publish messages")
 	rootCmd.PersistentFlags().IntP("qos", "q", 1, "Set your quality of service ")
@@ -76,9 +76,9 @@ func initConfig() {
 			os.Exit(1)
 		}
 
-		// Search config in home directory with name ".mqtt-sh" (without extension).
+		// Search config in home directory with name ".mqtt-cli" (without extension).
 		viper.AddConfigPath(home)
-		viper.SetConfigName(".mqtt-sh")
+		viper.SetConfigName(".mqtt-cli")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match

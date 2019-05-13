@@ -17,9 +17,9 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"github.com/shuza/mqtt-cli/key"
+	"github.com/shuza/mqtt-cli/utils"
 	"github.com/spf13/cobra"
-	"mqtt-sh/key"
-	"mqtt-sh/utils"
 	"os"
 	"strconv"
 )

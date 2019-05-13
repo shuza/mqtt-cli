@@ -15,5 +15,5 @@ import (
  **/
 
 func NewClientId() string {
-	return fmt.Sprintf("mqtt-sh-%s", time.Now().Format(time.RFC3339))
+	return fmt.Sprintf("mqtt-cli-%s", time.Now().Format(time.RFC3339))
 }
